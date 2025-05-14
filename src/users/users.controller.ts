@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
@@ -24,5 +24,23 @@ export class UsersController {
   @Get("find/:rank")
   findRank(@Param('rank') rank: string) {
     return `find the user's rank, which in this case is: ${rank}`
+  }
+
+  //POST /users
+  @Post()
+  addUsers(@Body() user: {}) {
+    return {user}
+  }
+
+  //PATCH /users/:id
+  @Patch(':id')
+  updateUser(@Param('id') id: string, @Body() singleUser: {}) {
+    return {id, ...singleUser}
+  }
+
+  //DELETE /user/:id
+  @Delete(':id')
+  removeUser(@Param('id') id: string) {
+    return {id}
   }
 }
