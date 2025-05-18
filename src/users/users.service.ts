@@ -9,22 +9,22 @@ export interface IUser {
 export class UsersService {
   private users = [
     {
-      id: '1',
+      id: 1,
       name: 'Bildad',
       email: 'bildadsimiyu6@gmail.com',
     },
     {
-      id: '2',
+      id: 2,
       name: 'Simiyu',
       email: 'simiyu@gmail.com',
     },
     {
-      id: '3',
+      id: 3,
       name: 'Chilli',
       email: 'hotchilli101@gmail.com',
     },
     {
-      id: '4',
+      id: 4,
       name: 'mimi',
       email: 'nimimi@gmail.com',
     },
@@ -34,20 +34,20 @@ export class UsersService {
     return this.users;
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     const singleUser = this.users.find((user) => user.id === id);
     return singleUser;
   }
 
   create(body: IUser) {
     const id =
-      this.users.length > 0 ? +this.users[this.users.length - 1].id.toString() + 1 : 1;
+      this.users.length > 0 ? this.users[this.users.length - 1].id + 1 : 1;
     const newUser = { id, ...body };
     const updatedUsers = [...this.users, newUser];
     return updatedUsers;
   }
 
-  update(id: string, body: IUser) {
+  update(id: number, body: IUser) {
     this.users = this.users.map((user) => {
       if (user.id === id) {
         return { ...user, ...body };
@@ -57,7 +57,7 @@ export class UsersService {
     return this.findOne(id);
   }
 
-  remove(id: string) {
+  remove(id: number) {
     const removedUser = this.users.find(user => user.id === id);
     this.users = this.users.filter((user) => user.id !== id);
     return removedUser;
