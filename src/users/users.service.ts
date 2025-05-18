@@ -74,6 +74,9 @@ export class UsersService {
 
   delete(id: number) {
     const findUser = this.users.find(user => user.id === id);
+    if(!findUser) {
+        throw new NotFoundException(`User with id: ${id} not found`)
+    }
     this.users = this.users.filter(user => user.id !== id);
     return findUser;
   }
