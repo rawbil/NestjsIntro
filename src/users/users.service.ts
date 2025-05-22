@@ -18,6 +18,11 @@ export class UsersService {
   async updateUser(id: number, data: Prisma.UsersUpdateInput) {
     const findUser = await this.prisma.users.findUnique({where: {id}})
     if(!findUser) throw new HttpException(`User with id: ${id} not found`, 404);
+    if(data.email) {
+      const findEmail = await this.prisma.users.findUnique({where: {email: data.email as string}});
+    if(findEmail) throw new HttpException("Email already exists", 400);
+    }
+    
 
     return this.prisma.users.update({where: {id}, data});
   }
