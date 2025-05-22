@@ -5,7 +5,13 @@ import { UpdateUserDto } from './dto/update-user-dto';
 
 @Controller('users')
 export class UsersController {
-/*     constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService) {}
+
+    @Post('create-user') //POST /users/create-user
+    createUser(@Body() createUserDto: CreateUserDto) {
+        return this.usersService.createUser(createUserDto)
+    }
+/*     
     @Get() //GET /users
     findAll(@Query('role', ValidationPipe) role?: 'INTERN' |'ADMIN' | 'ENGINEER') {
         return this.usersService.findAll(role);
