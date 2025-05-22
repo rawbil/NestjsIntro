@@ -8,8 +8,28 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Post('create-user') //POST /users/create-user
-    createUser(@Body() createUserDto: CreateUserDto) {
+    createUser(@Body(ValidationPipe) createUserDto: CreateUserDto) {
         return this.usersService.createUser(createUserDto)
+    }
+
+    @Patch('update-user/:id') //PATCH //users/update-user/:id
+    updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+        return this.usersService.updateUser(id, updateUserDto)
+    } 
+
+    @Get('all-users') //GET /users/all-users
+    findAllUsers() {
+        return this.usersService.findAllUsers()
+    } 
+
+    @Get(':id') //GET /users/:id
+    findUserById(@Param('id', ParseIntPipe) id: number) {
+        return this.usersService.findUserById(id);
+    }
+
+    @Delete('delete-user/:id') //DELETE /users/delete-user/:id
+    deleteUser(@Param('id', ParseIntPipe) id: number) {
+        return this.usersService.deleteUser(id);
     }
 /*     
     @Get() //GET /users
