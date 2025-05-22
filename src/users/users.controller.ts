@@ -5,7 +5,7 @@ import { UpdateUserDto } from './dto/update-user-dto';
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+/*     constructor(private readonly usersService: UsersService) {}
     @Get() //GET /users
     findAll(@Query('role', ValidationPipe) role?: 'INTERN' |'ADMIN' | 'ENGINEER') {
         return this.usersService.findAll(role);
@@ -29,5 +29,5 @@ export class UsersController {
     @Delete(':id') //DELETE /users/:id
     remove(@Param('id', ParseIntPipe) id: number) {
         return this.usersService.delete(id);
-    }
+    } */
 }
