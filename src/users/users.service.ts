@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { Prisma } from '@prisma/client';
@@ -11,6 +11,31 @@ export class UsersService {
 
   async createUser(data: Prisma.UsersCreateInput) {
     return await this.prisma.users.create({data});
+  }
+
+  async updateUser(id: number, data: Prisma.UsersUpdateInput) {
+    const findUser = await this.prisma.users.findUnique({where: {id}})
+    if(!findUser) throw new HttpException(`User with id: ${id} not found`, 404);
+
+    return this.prisma.users.update({where: {id}, data});
+  }
+
+  async findUserById(id: number) {
+    const user = await this.prisma.users.findUnique({where: {id}});
+    if(!user) throw new HttpException(`User with id: ${id} not found`, 404);
+    return user;
+  }
+
+  async findAllUsers() {
+    const allUsers = await this.prisma.users.findMany();
+    return allUsers
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.findUserById(id);
+    if(!user) throw new HttpException("User to delete not found", 404);
+    await this.prisma.users.delete({where: {id}});
+    return this.findAllUsers();
   }
 
  /*  private users = [
