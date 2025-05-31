@@ -36,10 +36,7 @@ export class UsersService {
 
   //update user
   async updateUserById(id: number, data: Prisma.UsersUpdateInput) {
-    const user = await this.prisma.users.update({
-      where: { id },
-      data: data,
-    });
+    const user = await this.findUserById(id);
     if (!user) throw new NotFoundException('User to update not found');
 
     if (data.email) {
@@ -49,7 +46,12 @@ export class UsersService {
       });
       if (checkEmail) return new ConflictException('Email already exists'); 
     }
-    return user;
+
+     return await this.prisma.users.update({
+      where: { id },
+      data: data,
+    });
+   
   }
 
   //delete user
