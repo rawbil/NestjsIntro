@@ -24,12 +24,13 @@ export class UsersService {
 
   //create new user
   async createUser(data: Prisma.UsersCreateInput) {
-    const newUser = await this.prisma.users.create({ data });
     //check if email already exists
     const checkEmail = await this.prisma.users.findUnique({
       where: { email: data.email as string },
     });
     if (checkEmail) return new ConflictException('Email already exists');
+    //after all exceptions are handled, create new user
+    const newUser = await this.prisma.users.create({ data });
     return newUser;
   }
 
