@@ -19,7 +19,8 @@ import { UsersModule } from 'src/users/users.module';
       inject: [ConfigService],
     }),
     PrismaModule,
-    UsersModule
+    UsersModule,
+    ConfigModule
   ],
 })
 export class AuthModule {}
