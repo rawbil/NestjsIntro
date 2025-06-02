@@ -66,17 +66,24 @@ export class AuthService {
 
     const secret = this.config.get<string>('JWT_SECRET');
 
-    //sign token
-    const token = await this.jwt.signAsync(payload, {
+    //sign access token
+    const access_token = await this.jwt.signAsync(payload, {
       secret,
       expiresIn: '1h',
     });
+
+    //sign refresh token
+    const refresh_token = await this.jwt.signAsync(payload, {
+      secret,
+      expiresIn: '7d'
+    })
 
     //returns the token
     return {
       success: true,
       message: 'Login Successful!!',
-      access_token: token,
+      access_token,
+      refresh_token
     };
   }
 }
