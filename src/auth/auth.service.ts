@@ -140,9 +140,20 @@ export class AuthService {
         throw new UnauthorizedException('Refresh token mismatch');
       }
 
+      //?invalidate the refreshtoken by deleting it from the database
+      //await this.prisma.users.update({where: {id: user.id}, data: {refreshToken: null}});
       return this.signToken(user.id, user.email);
     } catch (error) {
-      console.log(error);
+      throw new UnauthorizedException(error)
+    }
+  }
+
+  //!logout
+  async logout(userId: number) {
+    await this.prisma.users.update({where: {id: userId}, data: {refreshToken: null}});
+    return {
+      success: true,
+      message: "Logged out successfully"
     }
   }
 }
