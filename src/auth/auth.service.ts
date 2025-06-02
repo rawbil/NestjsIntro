@@ -1,4 +1,9 @@
-import { HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
@@ -7,6 +12,7 @@ import bcrypt from 'bcrypt';
 import { comparePassword, hashPassword } from './utils/password';
 import { ConfigService } from '@nestjs/config';
 import { RegisterDto } from './dto/register.dto';
+import { RefreshTokenDto } from './dto/refresh_token.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,24 +26,28 @@ export class AuthService {
   //register
   async register(registerDto: RegisterDto) {
     //check if email exists
-    const userExists = await this.prisma.users.findUnique({where: {email: registerDto.email}});
-    if(userExists) throw new UnauthorizedException("Email already exists");
+    const userExists = await this.prisma.users.findUnique({
+      where: { email: registerDto.email },
+    });
+    if (userExists) throw new UnauthorizedException('Email already exists');
 
     //hash password
     const hashedPassword = await hashPassword(registerDto.password);
 
     //create user
-    const newUser = await this.prisma.users.create({data: {
-      email: registerDto.email,
-      password: hashedPassword,
-      username: registerDto.username,
-    }});
+    const newUser = await this.prisma.users.create({
+      data: {
+        email: registerDto.email,
+        password: hashedPassword,
+        username: registerDto.username,
+      },
+    });
 
     return {
       success: true,
-      message: "User created successfully",
-      newUser
-    }
+      message: 'User created successfully',
+      newUser,
+    };
   }
 
   //login
@@ -75,15 +85,46 @@ export class AuthService {
     //sign refresh token
     const refresh_token = await this.jwt.signAsync(payload, {
       secret,
-      expiresIn: '7d'
-    })
+      expiresIn: '7d',
+    });
 
     //returns the token
     return {
       success: true,
       message: 'Login Successful!!',
       access_token,
-      refresh_token
+      refresh_token,
     };
+  }
+
+  //use refresh token to create a new access token
+  async refreshAccessToken(refreshTokenDto: RefreshTokenDto) {
+    try {
+      const { refresh_token } = refreshTokenDto;
+      //throw error if refresh token is not available
+      if (!refresh_token) {
+        throw new UnauthorizedException('Refresh token is required');
+      }
+
+      //Verify the refrehs token against the secret and get back the payload, which includes userId and email
+      
+      const secret = this.config.get<string>('JWT_SECRET');
+      const payload = await this.jwt.verifyAsync(refresh_token, {secret});
+
+      if(!payload) {
+        throw new UnauthorizedException("Invalid refresh token");
+      }
+
+      //find user with the payload id
+      const user = await this.prisma.users.findUnique({where: {id: payload.userId}});
+      if(!user) {
+        throw new NotFoundException("User not found. Login again");
+      }
+
+      return this.signToken(user.id, user.email);
+
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

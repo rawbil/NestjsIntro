@@ -24,7 +24,7 @@ model Users {
 }
 
 model Profile {
-  id Int @id @default(autoincrement())
-  username String @unique
+  id          Int       @id @default(autoincrement())
+  username    String    @unique
   displayName String? 
 }
