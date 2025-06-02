@@ -23,7 +23,7 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  //register
+  //!register
   async register(registerDto: RegisterDto) {
     //check if email exists
     const userExists = await this.prisma.users.findUnique({
@@ -50,7 +50,7 @@ export class AuthService {
     };
   }
 
-  //login
+  //!login
   async login(loginDto: LoginDto) {
     //check if user with provided email exists
     const user = await this.prisma.users.findUnique({
@@ -70,7 +70,7 @@ export class AuthService {
     return this.signToken(user.id, loginDto.email);
   }
 
-  //Token generation logic
+  //!Token generation logic
   async signToken(userId: number, email: string) {
     const payload = { userId, email };
 
@@ -88,6 +88,14 @@ export class AuthService {
       expiresIn: '7d',
     });
 
+    //we need to store the refresh token in the users model in DB
+    //first, hash the token for security
+    const hashedRefreshToken = await hashPassword(refresh_token);
+    await this.prisma.users.update({
+      where: { id: userId },
+      data: { refreshToken: hashedRefreshToken },
+    });
+
     //returns the token
     return {
       success: true,
@@ -97,7 +105,7 @@ export class AuthService {
     };
   }
 
-  //use refresh token to create a new access token
+  //!use refresh token to create a new access token
   async refreshAccessToken(refreshTokenDto: RefreshTokenDto) {
     try {
       const { refresh_token } = refreshTokenDto;
@@ -107,22 +115,23 @@ export class AuthService {
       }
 
       //Verify the refrehs token against the secret and get back the payload, which includes userId and email
-      
-      const secret = this.config.get<string>('JWT_SECRET');
-      const payload = await this.jwt.verifyAsync(refresh_token, {secret});
 
-      if(!payload) {
-        throw new UnauthorizedException("Invalid refresh token");
+      const secret = this.config.get<string>('JWT_SECRET');
+      const payload = await this.jwt.verifyAsync(refresh_token, { secret });
+
+      if (!payload) {
+        throw new UnauthorizedException('Invalid refresh token');
       }
 
       //find user with the payload id
-      const user = await this.prisma.users.findUnique({where: {id: payload.userId}});
-      if(!user) {
-        throw new NotFoundException("User not found. Login again");
+      const user = await this.prisma.users.findUnique({
+        where: { id: payload.userId },
+      });
+      if (!user) {
+        throw new NotFoundException('User not found. Login again');
       }
 
       return this.signToken(user.id, user.email);
-
     } catch (error) {
       console.log(error);
     }
