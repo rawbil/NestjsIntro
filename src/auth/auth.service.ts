@@ -131,6 +131,15 @@ export class AuthService {
         throw new NotFoundException('User not found. Login again');
       }
 
+      //compare incoming refresh token with the one stored in the database
+      const compareRefreshToken = await comparePassword(
+        refresh_token,
+        user.refreshToken as string,
+      );
+      if (!compareRefreshToken) {
+        throw new UnauthorizedException('Refresh token mismatch');
+      }
+
       return this.signToken(user.id, user.email);
     } catch (error) {
       console.log(error);
