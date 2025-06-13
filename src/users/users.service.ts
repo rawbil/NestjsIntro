@@ -1,124 +1,67 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user-dto';
-import { UpdateUserDto } from './dto/update-user-dto';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(private prisma: PrismaService) {}
-
-  async createUser(data: Prisma.UsersCreateInput) {
-    const findEmail = await this.prisma.users.findUnique({ where: { email: data.email } });
-    if(findEmail) throw new HttpException("email already exists", 400    )
-    return await this.prisma.users.create({data});
-  }
-
-  async updateUser(id: number, data: Prisma.UsersUpdateInput) {
-    const findUser = await this.prisma.users.findUnique({where: {id}})
-    if(!findUser) throw new HttpException(`User with id: ${id} not found`, 404);
-    if(data.email) {
-      const findEmail = await this.prisma.users.findUnique({where: {email: data.email as string}});
-    if(findEmail) throw new HttpException("Email already exists", 400);
-    }
-    
-
-    return this.prisma.users.update({where: {id}, data});
-  }
-
-  async findUserById(id: number) {
-    const user = await this.prisma.users.findUnique({where: {id}});
-    if(!user) throw new HttpException(`User with id: ${id} not found`, 404);
-    return user;
-  }
-
+  //find all users
   async findAllUsers() {
-    const allUsers = await this.prisma.users.findMany();
-    return allUsers
+    return await this.prisma.users.findMany();
   }
 
-  async deleteUser(id: number) {
-    const user = await this.findUserById(id);
-    if(!user) throw new HttpException("User to delete not found", 404);
-    await this.prisma.users.delete({where: {id}});
-    return this.findAllUsers();
-  }
-
- /*  private users = [
-    {
-      id: 1,
-      name: 'Bildad',
-      email: 'bildadsimiyu6@gmail.com',
-      role: 'ENGINEER',
-    },
-    {
-      id: 2,
-      name: 'Simiyu',
-      email: 'simiyu@gmail.com',
-      role: 'INTERN',
-    },
-    {
-      id: 3,
-      name: 'Roy',
-      email: 'itsprime@gmail.com',
-      role: 'ADMIN',
-    },
-    {
-      id: 4,
-      name: 'Wafula',
-      email: 'wamunyinyi@gmail.com',
-      role: 'INTERN',
-    },
-  ];
-  findAll(role?: 'INTERN' | 'ADMIN' | 'ENGINEER') {
-    if (role) {
-      const foundRoles = this.users.filter((user) => user.role === role);
-      if(foundRoles.length === 0) {
-        throw new NotFoundException("Invalid role")
-      }
-      else {
-        return foundRoles;
-      }
-    } else {
-      return this.users;
-    }
-  }
-
-  findOne(id: number) {
-    const user = this.users.find((user) => user.id === id);
-    if(!user) {
-        throw new NotFoundException(`User with id: ${id} not found`)
-    }
+  //find user by id
+  async findUserById(id: number) {
+    const user = await this.prisma.users.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  create(user: CreateUserDto) {
-    const id =
-      this.users.length > 0 ? this.users[this.users.length - 1].id + 1 : 1;
-    const newUser = { id, ...user };
-    const updatedUsers = [...this.users, newUser];
-    return updatedUsers;
-  }
-
-  update(id: number, body: UpdateUserDto) {
-    this.users = this.users.map((user) => {
-      if (user.id === id) {
-        const newUser = { ...user, ...body };
-        return newUser;
-      } else {
-        return user;
-      }
+  //create new user
+  async createUser(data: Prisma.UsersCreateInput) {
+    //check if email already exists
+    const checkEmail = await this.prisma.users.findUnique({
+      where: { email: data.email as string },
     });
-    return this.findOne(id);
+    if (checkEmail) return new ConflictException('Email already exists');
+    //after all exceptions are handled, create new user
+    const newUser = await this.prisma.users.create({ data });
+    return {message: "User created successfully", newUser};
   }
 
-  delete(id: number) {
-    const findUser = this.users.find(user => user.id === id);
-    if(!findUser) {
-        throw new NotFoundException(`User with id: ${id} not found`)
+  //update user
+  async updateUserById(id: number, data: Prisma.UsersUpdateInput) {
+    const user = await this.findUserById(id);
+    if (!user) throw new NotFoundException('User to update not found');
+
+    if (data.email) {
+      //check if updated email already exists
+      const checkEmail = await this.prisma.users.findUnique({
+        where: { email: data.email as string },
+      });
+      if (checkEmail) return new ConflictException('Email already exists');
     }
-    this.users = this.users.filter(user => user.id !== id);
-    return findUser;
-  } */
+
+    return {
+      message: 'User updated successfully',
+      updatedUser: await this.prisma.users.update({
+        where: { id },
+        data: data,
+      }),
+    };
+  }
+
+  //delete user
+  async deleteUser(id: number) {
+    await this.findUserById(id);
+    return {
+      user: await this.prisma.users.delete({ where: { id } }),
+      message: 'User deleted successfully',
+    };
+  }
 }
