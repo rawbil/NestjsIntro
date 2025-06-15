@@ -140,19 +140,25 @@ export class AuthService {
       }
 
       //?invalidate the refreshtoken by deleting it from the database
-     //await this.prisma.users.update({where: {id: payload.userId}, data: {refreshToken: null}})
+      //await this.prisma.users.update({where: {id: payload.userId}, data: {refreshToken: null}})
       return this.signToken(user.id, user.email);
     } catch (error) {
-      throw new UnauthorizedException(error)
+      throw new UnauthorizedException(error);
     }
   }
 
   //!logout
   async logout(userId: number) {
-    await this.prisma.users.update({where: {id: userId}, data: {refreshToken: null}});
+    await this.prisma.users.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
     return {
       success: true,
-      message: "Logged out successfully"
-    }
+      message: 'Logged out successfully',
+    };
   }
+  
+  //!Profile avatar
+  async UserAvatar() {}
 }
